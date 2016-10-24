@@ -1,0 +1,99 @@
+from __future__ import unicode_literals
+from django.db import models
+
+"""
+from api.models import Stops
+from api.serializers import StopsSerializer
+
+s=Stops(stop_id='66666', stop_code='99999', stop_desc='desc desc', stop_name='name name', latitude=1.1, longitude=2.2)
+
+s.save()
+
+Stops.objects.all()
+
+s=Stops.objects.get(stop_id='66666')
+
+s
+
+from api.models import StopTimes
+
+Below query is best to date, it uses sorting instead of group by which allows the extraction of delay from trips table: (Note this query uses stop_code instead of stop_id)
+
+select DISTINCT ON (route_short_name) route_short_name, api_trips.trip_headsign, api_trips.trip_id, departure_time, api_trips.delay from api_stoptimes inner join api_trips on api_stoptimes.trip_id = api_trips.id inner join api_routes on api_trips.route_id=api_routes.id inner join api_stops on api_stoptimes.stop_id = api_stops.id where departure_time > '10:18:00' AND api_trips.service_id = '20160221_10' and api_stops.stop_code ='1020' order by route_short_name ASC, departure_time ASC;
+
+Below query returns routes serviced by a stop and the next departure time.
+select route_short_name, api_trips.trip_headsign, MIN(departure_time) from api_stoptimes inner join api_trips on api_stoptimes.trip_id = api_trips.id inner join api_routes on api_trips.route_id=api_routes.id inner join api_stops on api_stoptimes.stop_id = api_stops.id where departure_time > '17:18:00' AND api_trips.service_id = '20160221_10' and api_stops.stop_id ='4' GROUP BY route_short_name, api_trips.trip_headsign;
+
+
+
+Below is 'training wheel' query:
+select route_short_name, api_routes.route_id, departure_time, trip_headsign from api_stoptimes inner join api_trips on api_stoptimes.trip_id = api_trips.id inner join api_routes on api_routes.id = api_trips.route_id where api_stoptimes.stop_id='4' and api_stoptimes.departure_time > '17:18:00';
+ 
+"""
+class Foo(models.Model):
+   route_short_name = models.CharField(max_length=8)
+   trip_headsign=models.CharField(max_length=80)
+   departure_time = models.CharField(max_length=8)
+   delay=models.SmallIntegerField(null=True);
+
+class Stops(models.Model):
+    stop_id = models.IntegerField()
+    stop_code = models.CharField(max_length=16)
+    stop_name = models.CharField(max_length=80)
+    stop_desc = models.CharField(max_length=80)
+    latitude = models.FloatField();
+    longitude = models.FloatField();
+    stop_zone = models.CharField(max_length=8, null=True)
+    stop_url = models.CharField(max_length=8, null=True)
+    stop_location_type = models.CharField(max_length=8, null=True)
+    parent_station = models.CharField(max_length=8, null=True)
+    timezone = models.CharField(max_length=8, null=True)
+    wheelchair = models.CharField(max_length=8, null=True)
+
+    #def __unicode__(self):
+    #   return '%s: %s %f %f' % (self.stop_code, self.stop_name, self.latitude, self.longitude)
+
+class Routes(models.Model):
+   route_id = models.CharField(max_length=8)
+   agency_id = models.CharField(max_length=8)
+   route_short_name = models.CharField(max_length=8)
+   route_long_name = models.CharField(max_length=80)
+   route_desc = models.CharField(max_length=8, null=True)
+   route_type = models.CharField(max_length=8, null=True)
+   route_url = models.CharField(max_length=120, null=True)
+   route_color = models.CharField(max_length=8, null=True)
+   route_text_color = models.CharField(max_length=8, null=True)
+   def __unicode__(self):
+      return '%s: %s^ %s+' % (self.route_id, self.route_short_name, self.route_long_name)
+
+class Trips(models.Model):
+   route_id=models.CharField(max_length=8)
+   #route_id= models.ForeignKey(Routes, db_column='route_id', related_name='my_trip_id')
+   route_id= models.ForeignKey(Routes, db_column='route_id')
+   service_id=models.CharField(max_length=24)
+   trip_id=models.CharField(max_length=8)
+   trip_headsign=models.CharField(max_length=80)
+   trip_short_name=models.CharField(max_length=8, null=True)
+   direction_id=models.CharField(max_length=8)
+   block_id=models.CharField(max_length=8, null=True)
+   shape_id=models.CharField(max_length=8)
+   wheelchair_accessible=models.CharField(max_length=8)
+   bikes_allowed=models.CharField(max_length=8)
+   delay=models.SmallIntegerField(null=True);
+
+class StopTimes(models.Model):
+   #trip_id = models.ForeignKey(Trips, db_column='trip_id', related_name='my_stop_times_trip_id')
+   trip_id = models.ForeignKey(Trips, db_column='trip_id')
+   arrival_time = models.CharField(max_length=8)
+   departure_time = models.CharField(max_length=8)
+   #stop_id = models.ForeignKey(Stops, db_column='stop_id', related_name='my_stop_times_stop_id')
+   stop_id = models.ForeignKey(Stops, db_column='stop_id')
+   stop_sequence = models.CharField(max_length=8)
+   stop_headsign = models.CharField(max_length=80, null=True)
+   pickup_type = models.CharField(max_length=8, null=True)
+   drop_off_type = models.CharField(max_length=8, null=True)
+   shape_dist_traveled = models.CharField(max_length=8, null=True)
+   timepoint = models.CharField(max_length=8, null=True)
+   ##def __unicode__(self):
+   #   return '%s: %s %s' % (self.trip_id, self.stop_id, self.stop_sequence)
+
