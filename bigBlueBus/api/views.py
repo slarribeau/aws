@@ -26,10 +26,13 @@ def stops_list(request):
 def departures_detail(request, pk, fk):
     print("departure detail" + " " + pk + " " + fk);
     #time="'17:18:00'"
-    time="'"+fk+"'"
-    stop = "'"+pk+"'"
+    time="'"+pk+"'"
+    stop = "'"+fk+"'"
 
-    departures=Routes.objects.raw("select DISTINCT ON (route_short_name) api_routes.id, route_short_name, api_trips.trip_headsign, departure_time, api_trips.delay from api_stoptimes inner join api_trips on api_stoptimes.trip_id = api_trips.id inner join api_routes on api_trips.route_id=api_routes.id inner join api_stops on api_stoptimes.stop_id = api_stops.id where departure_time > " + time + " AND api_trips.service_id = '20160221_10' and api_stops.stop_code = " + stop + " ORDER BY route_short_name ASC, departure_time ASC;")
+    query="select DISTINCT ON (route_short_name) api_routes.route_id, route_short_name, api_trips.trip_headsign, departure_time, api_trips.delay from api_stoptimes inner join api_trips on api_stoptimes.trip_id = api_trips.trip_id inner join api_routes on api_trips.route_id=api_routes.route_id inner join api_stops on api_stoptimes.stop_id = api_stops.stop_id where departure_time > " + time + " AND api_trips.service_id = '10' and api_stops.stop_code = " + stop + " ORDER BY route_short_name ASC, departure_time ASC;"
+
+    print(query);
+    departures=Routes.objects.raw(query)
 
 
     #departures = StopTimes.objects.filter(stop_id='4').filter(departure_time__gte='17:18:00').filter(trip_id__service_id='20160221_10').order_by('trip_id__route_id__route_short_name', 'departure_time').distinct('trip_id__route_id__route_short_name').values('trip_id__trip_headsign', 'trip_id__route_id__route_short_name', 'departure_time', 'trip_id__route_id');
@@ -39,7 +42,7 @@ def departures_detail(request, pk, fk):
 
 #@csrf_exempt
 def stops_detail(request, pk):
-    print("meter detail" + pk);
+    print("meter detail: " + pk);
     #stop = Stops.objects.get(stop_id__exact=pk)
     stop = Stops.objects.get(stop_code__exact=pk)
     serializer = StopsSerializer(stop)
