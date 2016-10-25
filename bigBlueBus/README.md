@@ -109,3 +109,29 @@ set up file serailizers.py from my github:
 
    157  pip install django-cors-headers
 
+set up nginx:
+=============
+
+  317  sudo apt-get install nginx
+  318  sudo service nginx start
+test out web page
+  319  sudo service nginx stop
+  321  sudo vim /etc/nginx/sites-enabled/default
+#root /usr/share/nginx/html;
+root /home/ubuntu/www;
+  322  sudo service nginx start
+  329  cd
+  330  mkdir www
+  330  cd www
+  331  vi index.html
+
+set up web page:
+================
+       mkdir ~/git
+  348  cd git
+  349  git clone https://github.com/slarribeau/www.git
+  350  cp www/google/bbb.html ~/www/
+  351  cp www/google/bus_logo.png ~/www/
+  352  mv ~/www/bbb.html ~/www/index.html
+  354  cp ../git/www/google/mystyle.css ~/www
+
