@@ -112,7 +112,7 @@ console.log("bbb");
       function makeMarker() {
         var infowindow = new google.maps.InfoWindow();
         //var stopAPI = "/google/stops.json"
-        var stopAPI = "http://463foobar.com:8000/api/stops/"
+        var stopAPI = "http://54.183.182.23:8000/api/stops/"
               $.getJSON( stopAPI, { })
               .done(function( data ) {
                  $.each( data, function( i, item )     {
@@ -152,9 +152,9 @@ console.log("bbb");
    }
    function getRoutes(stopCode, tm, nm, mrkr, mp, infndw) {
       var tmpData = ""; 
-      //var departureAPI = "http://463foobar.com:8000/api/departures/08:00:00/"+stopCode
       var departureAPI = 
-          "http://463foobar.com:8000/api/departures/" + tm + "/"+stopCode
+          //"http://54.183.182.23:8000/api/departures/" + tm + "/"+stopCode
+          "http://54.183.182.23:8000/api/departures/" + stopCode + "/"+tm
       console.log(departureAPI);
       $.getJSON( departureAPI, { })
          .done(function( data ) {
