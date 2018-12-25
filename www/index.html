@@ -16,29 +16,32 @@
       </div>  
 
       <div id="topdiv">
-          <img src="bus_logo.png" style="vertical-align:top"> 
-          <h1 style="display:inline-block;padding-left:60px">Santa Monica Transit Viewer</h1>
+             <img src="bus_logo.png" style="vertical-align:top;"> 
+          <div class="header_text">
+             <h1>Santa Monica Transit Viewer</h1>
+             <p>Click marker for bus arrival times.</p>
+          </div>
       </div> 
 
     <div id="wrapper">
        <div id="map-panel"> </div>
        <div id="overmap"> 
           <strong>Mode:</strong>
-             <select id="mode">
-               <option value="chicago, il">Driving</option>
-               <option value="st louis, mo">Walking</option>
-               <option value="joplin, mo">Transit</option>
-               <option value="oklahoma city, ok">Bicycle</option>
+             <select id="mode" onChange="changeMode()">
+               <option value="driving">Driving</option>
+               <option value="transit">Transit</option>
+               <option value="bike">Bicycle</option>
+               <option value="walking">Walking</option>
              </select>
              <br>
-          <strong>Start:</strong>
-            <input type="text" name="start" id="start">
-           <input type="updateMap" value="Update Map" onclick="updateMap()">
+          <strong>Start: </strong>
+           <input type="text" name="start" id="start" size="50" style="margin:0 20 0 6px">
           <br>
-          <strong>End:</strong>
-           <input type="text" name="end"  id="end">
+          <strong>End:  </strong>
+           <input type="text" name="end" id="end" size="50" style="margin:0 20 0 12px">
           <br>
-           <input type="submit" value="Submit" onclick="onChangeHandler()">
+           <button type="submit" value="Submit" onclick="onChangeHandler()">Get Directions</button>
+           <button type="updateMap" value="Update Map" style="float:right" onclick="updateMap()">Re-Center Map</button>
        </div>
        <div id="right-panel"></div>
     </div>
@@ -48,8 +51,13 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
+      console.log("Hello");
       zoomViewThreshold = 14;
+      transitMode = "traffic";
+      map ={};
+
       function initMap() {
+        console.log("initMap");
         geoHome = {lat: 34.0219, lng: -118.4814}; //Santa Monica
         geocoder = new google.maps.Geocoder();
 
@@ -61,13 +69,19 @@
           center: geoHome
         });
 
+        //var trafficLayer = new google.maps.TrafficLayer();
+        //trafficLayer.setMap(map);
+
+
         directionsDisplay.setMap(map);
         directionsDisplay.setPanel(document.getElementById('right-panel'));
+
 
         //control.style.display = 'block';
         //map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
 
         onChangeHandler = function() {
+          console.log("onChangeHandler");
           calculateAndDisplayRoute(directionsService, directionsDisplay);
         };
 
@@ -84,16 +98,33 @@
         markers = [];
         makeMarker();
 	setMarker() 
-console.log("aaa");
-console.log(map.getZoom());
-console.log("bbb");
+        console.log("getZoom");
+        console.log(map.getZoom());
         map.addListener('zoom_changed', function() { 
 	  setMarker() 
         });
       }
+      function changeMode(event) {
+	   transitMode = document.getElementById("mode").value;
+           console.log(x);
+
+           if (x == "driving") {
+             var trafficLayer = new google.maps.TrafficLayer();
+             trafficLayer.setMap(map);
+           }
+           if (x == "transit") {
+             var transitLayer = new google.maps.TransitLayer();
+             transitLayer.setMap(map);
+           }
+           if (x == "bike" || x == "walking") {
+              var bikeLayer = new google.maps.BicyclingLayer();
+              bikeLayer.setMap(map);
+           }
+      }
 
       function setMarker() {
            testZoomLevel = map.getZoom();
+	   console.log("setMarker");
 	   console.log(testZoomLevel);
 	   console.log(zoomViewThreshold);
            if (testZoomLevel > zoomViewThreshold) {
@@ -104,15 +135,17 @@ console.log("bbb");
       }
 
       function setMapOnAll(map) {
+	   console.log("setMapOnAll");
         for (var i = 0; i < markers.length; i++) {
 	    markers[i].setMap(map);
 	}
       }
 
       function makeMarker() {
+	console.log("makeMarker");
         var infowindow = new google.maps.InfoWindow();
         //var stopAPI = "/google/stops.json"
-        var stopAPI = "http://54.183.182.23:8000/api/stops/"
+        var stopAPI = "http://54.219.125.204:8000/api/stops/"
               $.getJSON( stopAPI, { })
               .done(function( data ) {
                  $.each( data, function( i, item )     {
@@ -136,6 +169,7 @@ console.log("bbb");
              });
       }
    function getTime() {
+       console.log("getTime");
        var now = new Date();
        hour = now.getHours().toString();
        if (hour.length == 1) {
@@ -151,10 +185,10 @@ console.log("bbb");
        return time;
    }
    function getRoutes(stopCode, tm, nm, mrkr, mp, infndw) {
+      console.log("getTime");
       var tmpData = ""; 
       var departureAPI = 
-          //"http://54.183.182.23:8000/api/departures/" + tm + "/"+stopCode
-          "http://54.183.182.23:8000/api/departures/" + stopCode + "/"+tm
+          "http://54.219.125.204:8000/api/departures/" + stopCode + "/"+tm
       console.log(departureAPI);
       $.getJSON( departureAPI, { })
          .done(function( data ) {
@@ -185,6 +219,7 @@ console.log("bbb");
           });
       }
       function updateMap() {
+        console.log("updateMap");
         var geoOrigin = document.getElementById('start').value;
 
         geocoder.geocode( { 'address': geoOrigin}, function(results, status) {
@@ -205,19 +240,35 @@ console.log("bbb");
           map.fitBounds(bounds);
 
         } else {
-           alert("Geocode was not successful for the following reason: " + status);
+           //alert("Geocode was not successful for the following reason: " + status);
+           console.log("Geocode was not successful for the following reason: " + status);
         }
        });
       }
 
 
       function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+      console.log("calculateAndDisplayRoute");
         var start = document.getElementById('start').value;
         var end = document.getElementById('end').value;
+        var mode;
+
+        if (transitMode == "driving") {
+             mode = google.maps.TravelMode.DRIVING;
+        }
+        if (transitMode == "transit") {
+             mode = google.maps.TravelMode.TRANSIT;
+        }
+        if (transitMode == "bike") {
+             mode = google.maps.TravelMode.BICYCLING;
+        }
+        if (transitMode == "walking") {
+             mode = google.maps.TravelMode.WALKING;
+        }
         directionsService.route({
           origin: start,
           destination: end,
-          travelMode: google.maps.TravelMode.DRIVING
+          travelMode: google.maps.TravelMode.WALKING
         }, function(response, status) {
           if (status === google.maps.DirectionsStatus.OK) {
             directionsDisplay.setDirections(response);
@@ -225,10 +276,11 @@ console.log("bbb");
             window.alert('Directions request failed due to ' + status);
           }
         });
+
       }
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvt59m6292BfxRwEPJnSSzv-jaVY8pNT4&callback=initMap&libraries=places">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1dywjkYfr1cKE1DYMvpHZ1HMQhSKqsMU&callback=initMap&libraries=places">
     </script>
   </body>
 </html>
